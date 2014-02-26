@@ -4,7 +4,8 @@ function spec(b) {
   var config = b.config || require('./config');
   var log = b.log || require('./util/log');
 
-  var Opcode = require('./Opcode').class();
+  var Opcode = b.Opcode || require('./Opcode').class();
+  var buffertools = b.buffertools || require('buffertools');
 
   // Make opcodes available as pseudo-constants
   for (var i in Opcode.map) {
@@ -144,9 +145,11 @@ function spec(b) {
     var chunks = [];
     for (var i in this.chunks)
     {
-      var chunk = this.chunks[i];
-      if (chunk != 0)
-        chunks.push(chunk);
+      if (this.chunks.hasOwnProperty(i)) {
+        var chunk = this.chunks[i];
+        if (chunk != 0)
+          chunks.push(chunk);
+      }
     }
     this.chunks = chunks;
     this.updateBuffer();
@@ -156,8 +159,11 @@ function spec(b) {
   Script.prototype.prependOp0 = function()
   {
     var chunks = [0];
-    for (i in this.chunks)
-      chunks.push(this.chunks[i]);
+    for (i in this.chunks) {
+      if (this.chunks.hasOwnProperty(i)) {
+        chunks.push(this.chunks[i]);
+      }
+    }
     this.chunks = chunks;
     this.updateBuffer();
     return this;
@@ -396,7 +402,7 @@ function spec(b) {
     if (Buffer.isBuffer(chunk)) {
       for (var i = 0, l = this.chunks.length; i < l; i++) {
         if (Buffer.isBuffer(this.chunks[i]) &&
-            this.chunks[i].compare(chunk) == 0) {
+            buffertools.compare(this.chunks[i], chunk) === 0) {
           this.chunks.splice(i, 1);
           dirty = true;
         }
@@ -485,6 +491,7 @@ function spec(b) {
 
   Script.chunksToBuffer = function (chunks) {
     var buf = new Put();
+
     for (var i = 0, l = chunks.length; i < l; i++) {
       var data = chunks[i];
       if (Buffer.isBuffer(data)) {

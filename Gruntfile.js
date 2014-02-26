@@ -6,6 +6,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-browserify');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-mocha-test');
+  grunt.loadNpmTasks('grunt-markdown');
 
   // Project Configuration
   grunt.initConfig({
@@ -15,22 +16,31 @@ module.exports = function(grunt) {
         dest: 'browser/bundle.js',
         options: {
           debug: true,
-          alias: ['browserify-bignum/bignumber.js:bignum'],
+          alias: [
+            'browserify-bignum/bignumber.js:bignum',
+            'browserify-buffertools/buffertools.js:buffertools'
+          ],
           standalone: 'bitcore',
         }
       },
-      vendor: {
-        src: ['browser/vendor_load.js'],
-        dest: 'browser/vendor.js',
+      test_data: {
+        src: ['test/testdata.js'],
+        dest: 'browser/testdata.js',
         options: {
-
+          transform: ['brfs'],
+          debug: true,
+          standalone: 'testdata',
         }
       }
     },
     watch: {
+      readme: {
+        files: ['README.md'],
+        tasks: ['markdown']
+      },
       scripts: {
-        files: ['**/*.js', '**/*.html', '!**/node_modules/**', '!**/bundle.js', '!**/vendor.js'],
-        tasks: ['browserify'/*, 'mochaTest'*/],
+        files: ['**/*.js', '**/*.html', '!**/node_modules/**', '!browser/bundle.js', '!browser/testdata.js'],
+        tasks: ['browserify' /*, 'mochaTest'*/ ],
       },
     },
     mochaTest: {
@@ -39,10 +49,20 @@ module.exports = function(grunt) {
       },
       src: ['test/*.js'],
     },
+    markdown: {
+      all: {
+        files: [{
+          expand: true,
+          src: 'README.md',
+          dest: '.',
+          ext: '.html'
+        }]
+      }
+    }
+
 
   });
 
   grunt.registerTask('default', ['watch']);
 
 };
-
